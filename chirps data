@@ -1,0 +1,38 @@
+# import os and ftplib module
+import os
+from ftplib import FTP, error_perm
+
+
+def download_chirps_data():
+    with FTP('ftp.chg.ucsb.edu')as ftp:  # connect to host ftp server
+        ftp.login()  # login to the ftp sever
+        # change the directory
+        ftp.cwd('/pub/org/chg/products/CHIRPS-2.0/EAC_monthly/tifs/')
+        file_names = ftp.nlst()  # list directory contents
+        count = 0
+        for filename in file_names:
+            # download data between the year 1982 and 2018
+            if get_year(filename) in range(1982, 2018):
+                count += 1
+                host_file = os.path.join(os.getcwd(), filename)
+                print(host_file)
+                try:
+                    with open(host_file, 'wb')as local_file:
+                        print('downloading.....')
+                        ftp.retrbinary('RETR ' + filename, local_file.write)
+                except error_perm:
+                    pass
+        print('finished')
+        ftp.quit()
+        print("downloaded", count)
+        ftp.close()  # terminate the connection
+
+
+def get_year(file_name):
+
+    formatted_filename = file_name.replace("chirps-v2.0.", "")
+    year = formatted_filename[0:4]
+    return int(year)
+
+
+download_chirps_data()
